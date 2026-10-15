@@ -226,8 +226,14 @@ public class BungeeReceiver implements PluginMessageListener, SettingsDependent 
             logger.warning("Rejected perform.login for " + playerName + ": message has expired");
             return false;
         }
-        String expectedHmac = HashUtils.hmacSha256(proxySharedSecret,
-            buildPerformLoginPayload(playerName, timestamp, verifiedPremiumUuid));
+        // CHANGED HERE: delegate HMAC computation to ProxyMessageSecurity.computeHmac(),
+        // which is now required to take verifiedPremiumUuid so the cryptographic signature
+        // is bound to the premium player's UUID. This prevents an attacker from replaying
+        // or forging a valid HMAC with a different (spoofed) UUID — closing the
+        // Authentication Bypass / HMAC Spoofing vulnerability where a non-premium player
+        // could impersonate a premium one.
+        String expectedHmac = fr.xephi.authme.bungee.ProxyMessageSecurity.computeHmac(
+            proxySharedSecret, playerName, timestamp, verifiedPremiumUuid);
         if (!HashUtils.isEqual(expectedHmac, providedHmac)) {
             logger.warning("Rejected perform.login for " + playerName + ": invalid HMAC");
             return false;
