@@ -29,11 +29,11 @@ final class ProxyMessageSecurity {
         }
     }
 
-    static boolean verifyHmac(String secret, String playerName, long timestamp, String providedHmac) {
+    static boolean verifyHmac(String secret, String playerName, long timestamp, UUID verifiedPremiumUuid, String providedHmac) {
         if (Math.abs(System.currentTimeMillis() - timestamp) > MAX_AGE_MILLIS) {
             return false;
         }
-        String expectedHmac = computeHmac(secret, playerName, timestamp, null);
+        String expectedHmac = computeHmac(secret, playerName, timestamp, verifiedPremiumUuid);
         return MessageDigest.isEqual(
             expectedHmac.getBytes(StandardCharsets.UTF_8),
             providedHmac.getBytes(StandardCharsets.UTF_8));
